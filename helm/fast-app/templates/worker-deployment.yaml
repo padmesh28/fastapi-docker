@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-worker
+spec:
+  replicas: {{ .Values.worker.replicas }}
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      containers:
+        - name: worker
+          image: "{{ .Values.images.worker.repository }}:{{ .Values.images.worker.tag }}"
+          imagePullPolicy: {{ .Values.images.worker.pullPolicy }}
+          command: ["celery"]
+          args:
+            - -A
+            - app.celery_app
+            - worker
+            - --loglevel=info
+          env:
+            - name: CELERY_BROKER_URL
+              value: redis://{{ .Release.Name }}-redis-master:6379/0
+            - name: CELERY_RESULT_BACKEND
+              value: redis://{{ .Release.Name }}-redis-master:6379/1
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
