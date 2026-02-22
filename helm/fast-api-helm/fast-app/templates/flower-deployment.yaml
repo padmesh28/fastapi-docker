@@ -1,0 +1,40 @@
+{{- if .Values.flower.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-flower
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flower
+  template:
+    metadata:
+      labels:
+        app: flower
+    spec:
+      containers:
+        - name: flower
+          image: "{{ .Values.images.flower.repository }}:{{ .Values.images.flower.tag }}"
+          imagePullPolicy: {{ .Values.images.flower.pullPolicy }}
+          args:
+            - celery
+            - --broker=redis://{{ .Release.Name }}-redis:6379/0
+            - flower
+          ports:
+            - containerPort: 5555
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5555
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5555
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.flower.resources | nindent 12 }}
+{{- end }}

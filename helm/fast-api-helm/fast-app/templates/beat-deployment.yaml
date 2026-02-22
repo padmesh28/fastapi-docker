@@ -1,0 +1,32 @@
+{{- if .Values.beat.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-beat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: beat
+  template:
+    metadata:
+      labels:
+        app: beat
+    spec:
+      containers:
+        - name: beat
+          image: "{{ .Values.images.beat.repository }}:{{ .Values.images.beat.tag }}"
+          imagePullPolicy: {{ .Values.images.beat.pullPolicy }}
+          command: ["celery"]
+          args:
+            - -A
+            - app.celery_app
+            - beat
+            - --loglevel=info
+            - --scheduler=celery.beat:Scheduler
+          env:
+            - name: CELERY_BROKER_URL
+              value: redis://{{ .Release.Name }}-redis:6379/0
+          resources:
+            {{- toYaml .Values.beat.resources | nindent 12 }}
+{{- end }}

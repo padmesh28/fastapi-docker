@@ -1,0 +1,106 @@
+# =====================================================
+# Images (LOCAL Docker images)
+# =====================================================
+images:
+  api:
+    repository: fastapi-api
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  worker:
+    repository: fastapi-worker
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  beat:
+    repository: fastapi-beat
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  flower:
+    repository: mher/flower
+    tag: "2.0"
+    pullPolicy: IfNotPresent
+
+
+# =====================================================
+# FastAPI
+# =====================================================
+api:
+  replicas: 1
+  service:
+    type: NodePort
+    port: 8000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+
+# =====================================================
+# Celery Worker
+# =====================================================
+worker:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+
+# =====================================================
+# Celery Beat
+# =====================================================
+beat:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 150m
+      memory: 128Mi
+
+
+# =====================================================
+# Flower
+# =====================================================
+flower:
+  enabled: true
+  service:
+    type: NodePort
+    port: 5555
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 150m
+      memory: 128Mi
+
+
+# =====================================================
+# Redis (OFFICIAL Redis image via Deployment)
+# =====================================================
+redis:
+  enabled: true
+  replicas: 1
+  image:
+    repository: redis
+    tag: "7"
+    pullPolicy: IfNotPresent
+  service:
+    port: 6379
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
