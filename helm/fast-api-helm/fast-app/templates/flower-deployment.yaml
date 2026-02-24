@@ -2,24 +2,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-flower
+  name: {{ include "fastapi-celery.fullname" . }}-flower
+  labels:
+    {{- include "fastapi-celery.labels" . | nindent 4 }}
+    app.kubernetes.io/component: flower
 spec:
-  replicas: 1
+  replicas: {{ .Values.flower.replicas }}
   selector:
     matchLabels:
-      app: flower
+      {{- include "fastapi-celery.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: flower
   template:
     metadata:
       labels:
-        app: flower
+        {{- include "fastapi-celery.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: flower
     spec:
+      {{- include "fastapi-celery.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: flower
           image: "{{ .Values.images.flower.repository }}:{{ .Values.images.flower.tag }}"
           imagePullPolicy: {{ .Values.images.flower.pullPolicy }}
           args:
             - celery
-            - --broker=redis://{{ .Release.Name }}-redis:6379/0
+            - --broker=redis://{{ include "fastapi-celery.fullname" . }}-redis:6379/0
             - flower
           ports:
             - containerPort: 5555

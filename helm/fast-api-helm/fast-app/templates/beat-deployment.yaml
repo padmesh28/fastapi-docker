@@ -2,17 +2,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-beat
+  name: {{ include "fastapi-celery.fullname" . }}-beat
+  labels:
+    {{- include "fastapi-celery.labels" . | nindent 4 }}
+    app.kubernetes.io/component: beat
 spec:
-  replicas: 1
+  replicas: {{ .Values.beat.replicas }}
   selector:
     matchLabels:
-      app: beat
+      {{- include "fastapi-celery.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: beat
   template:
     metadata:
       labels:
-        app: beat
+        {{- include "fastapi-celery.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: beat
     spec:
+      {{- include "fastapi-celery.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: beat
           image: "{{ .Values.images.beat.repository }}:{{ .Values.images.beat.tag }}"
@@ -26,7 +32,7 @@ spec:
             - --scheduler=celery.beat:Scheduler
           env:
             - name: CELERY_BROKER_URL
-              value: redis://{{ .Release.Name }}-redis:6379/0
+              value: redis://{{ include "fastapi-celery.fullname" . }}-redis:6379/0
           resources:
             {{- toYaml .Values.beat.resources | nindent 12 }}
 {{- end }}

@@ -2,17 +2,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-redis
+  name: {{ include "fastapi-celery.fullname" . }}-redis
+  labels:
+    {{- include "fastapi-celery.labels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
 spec:
   replicas: {{ .Values.redis.replicas }}
   selector:
     matchLabels:
-      app: redis
+      {{- include "fastapi-celery.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: redis
   template:
     metadata:
       labels:
-        app: redis
+        {{- include "fastapi-celery.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: redis
     spec:
+      {{- include "fastapi-celery.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: redis
           image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"

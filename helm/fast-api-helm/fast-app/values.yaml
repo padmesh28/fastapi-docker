@@ -1,6 +1,9 @@
 # =====================================================
 # Images (LOCAL Docker images)
 # =====================================================
+nameOverride: ""
+fullnameOverride: ""
+
 images:
   api:
     repository: fastapi-api
@@ -22,6 +25,12 @@ images:
     tag: "2.0"
     pullPolicy: IfNotPresent
 
+# Optional image pull secrets for private registries (OpenShift/Kubernetes)
+# Example:
+# imagePullSecrets:
+#   - my-registry-secret
+imagePullSecrets: []
+
 
 # =====================================================
 # FastAPI
@@ -29,8 +38,27 @@ images:
 api:
   replicas: 1
   service:
-    type: NodePort
+    type: ClusterIP
     port: 8000
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts:
+      - host: api.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  route:
+    enabled: false
+    host: ""
+    path: /
+    tls:
+      enabled: true
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+    annotations: {}
   resources:
     requests:
       cpu: 100m
@@ -59,6 +87,7 @@ worker:
 # =====================================================
 beat:
   enabled: true
+  replicas: 1
   resources:
     requests:
       cpu: 50m
@@ -73,9 +102,29 @@ beat:
 # =====================================================
 flower:
   enabled: true
+  replicas: 1
   service:
-    type: NodePort
+    type: ClusterIP
     port: 5555
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts:
+      - host: flower.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  route:
+    enabled: false
+    host: ""
+    path: /
+    tls:
+      enabled: true
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+    annotations: {}
   resources:
     requests:
       cpu: 50m

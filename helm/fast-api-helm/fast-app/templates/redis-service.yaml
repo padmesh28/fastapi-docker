@@ -2,11 +2,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-redis
+  name: {{ include "fastapi-celery.fullname" . }}-redis
+  labels:
+    {{- include "fastapi-celery.labels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
 spec:
   type: ClusterIP
   selector:
-    app: redis
+    {{- include "fastapi-celery.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
   ports:
     - name: redis
       port: {{ .Values.redis.service.port }}

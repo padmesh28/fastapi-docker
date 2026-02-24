@@ -2,11 +2,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-flower
+  name: {{ include "fastapi-celery.fullname" . }}-flower
+  labels:
+    {{- include "fastapi-celery.labels" . | nindent 4 }}
+    app.kubernetes.io/component: flower
 spec:
   type: {{ .Values.flower.service.type }}
   selector:
-    app: flower
+    {{- include "fastapi-celery.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: flower
   ports:
     - port: {{ .Values.flower.service.port }}
       targetPort: 5555

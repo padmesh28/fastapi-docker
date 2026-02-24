@@ -1,17 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-api
+  name: {{ include "fastapi-celery.fullname" . }}-api
+  labels:
+    {{- include "fastapi-celery.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
 spec:
   replicas: {{ .Values.api.replicas }}
   selector:
     matchLabels:
-      app: api
+      {{- include "fastapi-celery.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api
   template:
     metadata:
       labels:
-        app: api
+        {{- include "fastapi-celery.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: api
     spec:
+      {{- include "fastapi-celery.imagePullSecrets" . | nindent 6 }}
       containers:
         - name: api
           image: "{{ .Values.images.api.repository }}:{{ .Values.images.api.tag }}"
@@ -25,9 +31,9 @@ spec:
             - "8000"
           env:
             - name: CELERY_BROKER_URL
-              value: redis://{{ .Release.Name }}-redis:6379/0
+              value: redis://{{ include "fastapi-celery.fullname" . }}-redis:6379/0
             - name: CELERY_RESULT_BACKEND
-              value: redis://{{ .Release.Name }}-redis:6379/1
+              value: redis://{{ include "fastapi-celery.fullname" . }}-redis:6379/1
           ports:
             - containerPort: 8000
           readinessProbe:

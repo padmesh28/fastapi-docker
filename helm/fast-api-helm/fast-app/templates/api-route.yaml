@@ -1,0 +1,30 @@
+{{- if .Values.api.route.enabled }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "fastapi-celery.fullname" . }}-api
+  labels:
+    {{- include "fastapi-celery.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+  {{- with .Values.api.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.api.route.host }}
+  host: {{ .Values.api.route.host | quote }}
+  {{- end }}
+  {{- if .Values.api.route.path }}
+  path: {{ .Values.api.route.path | quote }}
+  {{- end }}
+  to:
+    kind: Service
+    name: {{ include "fastapi-celery.fullname" . }}-api
+  port:
+    targetPort: {{ .Values.api.service.port }}
+  {{- if .Values.api.route.tls.enabled }}
+  tls:
+    termination: {{ .Values.api.route.tls.termination }}
+    insecureEdgeTerminationPolicy: {{ .Values.api.route.tls.insecureEdgeTerminationPolicy }}
+  {{- end }}
+{{- end }}

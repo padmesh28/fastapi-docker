@@ -1,0 +1,30 @@
+{{- if and .Values.flower.enabled .Values.flower.route.enabled }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "fastapi-celery.fullname" . }}-flower
+  labels:
+    {{- include "fastapi-celery.labels" . | nindent 4 }}
+    app.kubernetes.io/component: flower
+  {{- with .Values.flower.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.flower.route.host }}
+  host: {{ .Values.flower.route.host | quote }}
+  {{- end }}
+  {{- if .Values.flower.route.path }}
+  path: {{ .Values.flower.route.path | quote }}
+  {{- end }}
+  to:
+    kind: Service
+    name: {{ include "fastapi-celery.fullname" . }}-flower
+  port:
+    targetPort: {{ .Values.flower.service.port }}
+  {{- if .Values.flower.route.tls.enabled }}
+  tls:
+    termination: {{ .Values.flower.route.tls.termination }}
+    insecureEdgeTerminationPolicy: {{ .Values.flower.route.tls.insecureEdgeTerminationPolicy }}
+  {{- end }}
+{{- end }}
